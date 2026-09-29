@@ -7,7 +7,7 @@ Since this project has just started, there is no working version yet. However, c
 
 ## Dependencies
 This project has been made in Unity. In order to execute it the following components are needed:
-* Unity Editor V.6000.5.9f1 (Newer versions may be used, however, this might create some unexpected errors!)
+* Unity Editor V.6000.3.25f1 (Newer versions may be used, however, this might create some unexpected errors!)
   
 ## Roadmap / Next Steps
 
