@@ -1,11 +1,15 @@
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.XR.ARFoundation;
+using UnityEngine.XR.ARSubsystems;
 
 public class SceneController : MonoBehaviour
 {
-    [SerializeField]
-    private InputActionReference _togglePlanesAction;
+    [SerializeField] private InputActionReference _togglePlanesAction;
+    [SerializeField] private InputActionReference _activateAction;
+    [SerializeField] private GameObject _grabbableCube;
+    [SerializeField] private Transform hand;
 
     private ARPlaneManager _planeManager;
     private bool _isVisible = true;
@@ -22,14 +26,26 @@ public class SceneController : MonoBehaviour
 
         _togglePlanesAction.action.performed += OnTogglePlanesAction;
         _planeManager.trackablesChanged.AddListener(OnPlanesChanged);
+        _activateAction.action.performed += OnActivateAction;
     }
 
-    void Update()
+    private void OnActivateAction(InputAction.CallbackContext context)
     {
-
+        SpawnGrabableCube();
     }
 
-    private void OnTogglePlanesAction(InputAction.CallbackContext obj)
+    private void SpawnGrabableCube()
+    {
+        Debug.Log("-> SceneController::SpawnGrabbableCube()");
+        Vector3 spawnPosition;
+
+        spawnPosition = hand.transform.position;
+                
+        Instantiate(_grabbableCube, spawnPosition, Quaternion.identity);
+ 
+    }
+
+    private void OnTogglePlanesAction(InputAction.CallbackContext obj) //Changes the visibility of the planes
     {
         _isVisible = !_isVisible;
         float fillAlpha = _isVisible ? 0.3f : 0f;
@@ -43,14 +59,13 @@ public class SceneController : MonoBehaviour
         }
     }
 
-    private void SetPlaneAlpha(ARPlane plane, float fillAlpha, float lineAlpha)
+    private void SetPlaneAlpha(ARPlane plane, float fillAlpha, float lineAlpha) //Changes the alpha value of the planes
     {
         var meshRenderer = plane.GetComponentInChildren<MeshRenderer>();
         var lineRenderer = plane.GetComponentInChildren<LineRenderer>();
 
         if (meshRenderer != null)
         {
-            // En URP la propiedad suele ser _BaseColor en lugar de _Color
             Color color = meshRenderer.material.HasProperty("_BaseColor") ?
                           meshRenderer.material.GetColor("_BaseColor") :
                           meshRenderer.material.color;
@@ -60,7 +75,7 @@ public class SceneController : MonoBehaviour
             if (meshRenderer.material.HasProperty("_BaseColor"))
                 meshRenderer.material.SetColor("_BaseColor", color);
             else
-                meshRenderer.material.color = color; // Fallback para Standard Render Pipeline
+                meshRenderer.material.color = color; 
         }
 
         if (lineRenderer != null)
@@ -76,7 +91,7 @@ public class SceneController : MonoBehaviour
         }
     }
 
-    private void OnPlanesChanged(ARTrackablesChangedEventArgs<ARPlane> args)
+    private void OnPlanesChanged(ARTrackablesChangedEventArgs<ARPlane> args) //Tracks the amount of planes that have changed
     {
         if (args.added.Count > 0)
         {
@@ -103,5 +118,6 @@ public class SceneController : MonoBehaviour
         Debug.Log("-> SceneController::OnDestroy()");
         _togglePlanesAction.action.performed -= OnTogglePlanesAction;
         _planeManager.trackablesChanged.RemoveListener(OnPlanesChanged);
+        _activateAction.action.performed -= OnActivateAction;
     }
 }
