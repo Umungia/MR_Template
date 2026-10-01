@@ -3,7 +3,7 @@
 **MR_Template** is a minimalist Unity project meant to explore and test Unity's MR (Mixed Reality). This small project has been created with the intention of helping MR developers by giving a solid base to start from.
 
 ## Status
-Since this project has just started, there is no working version yet. However, commits will be done during the week that will add different testing scenes to the game.
+- The First tutorial playlist is being implemented into the game. Plane detection and spawnable and interactive cubes are the most recent additions.
 
 ## Dependencies
 This project has been made in Unity. In order to execute it the following components are needed:
