@@ -4,6 +4,7 @@
 
 ## Status
 - The First tutorial playlist is being implemented into the game. Plane detection and spawnable and interactive cubes are the most recent additions.
+- No changes have been done since last commit. I am currently working on the further development of the "Classroom Escape Room", my vr project in colaboration with MURGILDU, made with Godot.
 
 ## Dependencies
 This project has been made in Unity. In order to execute it the following components are needed:
