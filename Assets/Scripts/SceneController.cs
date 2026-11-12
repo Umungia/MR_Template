@@ -1,17 +1,27 @@
+using NUnit.Framework;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 public class SceneController : MonoBehaviour
 {
     [SerializeField] private InputActionReference _togglePlanesAction;
-    [SerializeField] private InputActionReference _activateAction;
+    [SerializeField] private InputActionReference _rightActivateAction;
+    [SerializeField] private InputActionReference _leftActivateAction;
+    [SerializeField] private XRRayInteractor _leftRayInteractor;
     [SerializeField] private GameObject _grabbableCube;
     [SerializeField] private Transform hand;
+    [SerializeField] private GameObject _prefab;
 
     private ARPlaneManager _planeManager;
+    private ARAnchorManager _anchorManager;
+    private ARAnchor removedAnchorValue;
+
+    private List<ARAnchor> _anchors = new();
     private bool _isVisible = true;
     private int _numPlanesAddedOccurred = 0;
 
@@ -23,13 +33,73 @@ public class SceneController : MonoBehaviour
         {
             Debug.LogError("-> Can't find 'ARPlaneManager' :(  ");
         }
+        _anchorManager = GetComponent<ARAnchorManager>();
+        if(_anchorManager is null)
+        {
+            Debug.LogError("-> Can't find 'ARAnchorManager' :(");
+        }
 
         _togglePlanesAction.action.performed += OnTogglePlanesAction;
         _planeManager.trackablesChanged.AddListener(OnPlanesChanged);
-        _activateAction.action.performed += OnActivateAction;
+        _anchorManager.trackablesChanged.AddListener(OnAnchorsChanged);
+        _rightActivateAction.action.performed += OnRightActivateAction;
+        _leftActivateAction.action.performed += OnLeftActivateAction;
     }
 
-    private void OnActivateAction(InputAction.CallbackContext context)
+    private void OnAnchorsChanged(ARTrackablesChangedEventArgs<ARAnchor> obj)
+        {
+        foreach (var removedAnchor in obj.removed)
+        {
+            removedAnchorValue = removedAnchor.Value;
+            _anchors.Remove(removedAnchorValue);
+
+            if (removedAnchorValue != null && removedAnchorValue.gameObject != null)
+            {
+                Destroy(removedAnchorValue.gameObject);
+            }
+
+        }
+    }
+
+    private void OnLeftActivateAction(InputAction.CallbackContext context)
+    {
+        CheckIfRayHitsCollider();
+    }
+
+    private async void CheckIfRayHitsCollider()
+    {
+        if (_leftRayInteractor.TryGetCurrent3DRaycastHit(out RaycastHit hit))
+        {
+            Debug.Log("-> Hit detected! :) - name : " + hit.transform.name);
+            Quaternion rotation = Quaternion.LookRotation(hit.normal, Vector3.up);
+
+            GameObject instance = Instantiate(_prefab, hit.point, rotation);
+            Pose hitPose = new Pose(hit.point, rotation);
+            var result = await _anchorManager.TryAddAnchorAsync(hitPose);
+
+            if (result.status.IsSuccess())
+            {
+                ARAnchor anchor = result.value;
+                if (anchor != null)
+                {
+                    Debug.Log("-> CreateAnchoredObject() - anchor added! :)");
+                    instance.transform.SetParent(anchor.transform);
+                    _anchors.Add(anchor);
+                }
+                else
+                {
+                    Debug.LogError("-> CreateAnchoredObject() - anchor is null! :(");
+                    Destroy(instance);
+                }
+            }
+
+        }
+        else
+        {
+            Debug.LogFormat("-> No hit detected! :(");
+        }
+    }
+    private void OnRightActivateAction(InputAction.CallbackContext context)
     {
         SpawnGrabableCube();
     }
@@ -91,7 +161,7 @@ public class SceneController : MonoBehaviour
         }
     }
 
-    private void OnPlanesChanged(ARTrackablesChangedEventArgs<ARPlane> args) //Tracks the amount of planes that have changed
+    private void OnPlanesChanged(ARTrackablesChangedEventArgs<ARPlane> args)
     {
         if (args.added.Count > 0)
         {
@@ -118,6 +188,8 @@ public class SceneController : MonoBehaviour
         Debug.Log("-> SceneController::OnDestroy()");
         _togglePlanesAction.action.performed -= OnTogglePlanesAction;
         _planeManager.trackablesChanged.RemoveListener(OnPlanesChanged);
-        _activateAction.action.performed -= OnActivateAction;
+        _anchorManager.trackablesChanged.RemoveListener(OnAnchorsChanged);
+        _rightActivateAction.action.performed -= OnRightActivateAction;
+        _leftActivateAction.action.performed -= OnLeftActivateAction;
     }
 }
