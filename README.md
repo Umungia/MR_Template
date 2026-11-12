@@ -3,8 +3,8 @@
 **MR_Template** is a minimalist Unity project meant to explore and test Unity's MR (Mixed Reality). This small project has been created with the intention of helping MR developers by giving a solid base to start from.
 
 ## Status
-- The First tutorial playlist is being implemented into the game. Plane detection and spawnable and interactive cubes are the most recent additions.
-- No changes have been done since last commit. I am currently working on the further development of the "Classroom Escape Room", my vr project in colaboration with MURGILDU, made with Godot.
+- The First tutorial playlist is being implemented into the game. Spacial anchors and interactive cubes are the most recent additions.
+- Even though the development of this project is being quite slow, I am still trying to develop it as much as possible with my limited schedule.
 
 ## Dependencies
 This project has been made in Unity. In order to execute it the following components are needed:
